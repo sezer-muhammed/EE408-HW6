@@ -1,5 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage{url}
+\usepackage{amsmath, amssymb}
 \input{structure.tex} % Include the file specifying the document structure and custom commands
 
 %----------------------------------------------------------------------------------------
@@ -30,7 +31,7 @@
 
 \newpage
 
-\paragraph*{Project Link:} \url{https://github.com/sezer-muhammed/EE498Project}
+\paragraph*{Project Link:} \url{https://github.com/sezer-muhammed/EE408-HW6}
 
 \begin{question}
 
@@ -40,6 +41,14 @@
 
 	\end{subquestion}
 	\answer{
+		\begin{enumerate}
+			\item Compute the first slope, $k_1$, using the formula: $k_1 = h f(t_i, y_i)$.
+			\item Next, calculate $k_2$, which uses the midpoint of the interval for function value approximation. The formula is: $k_2 = h f(t_i + c_2 h, y_i + c_2 k_1)$.
+			\item Determine $k_3$ via the formula: $k_3 = h f(t_i + 2 c_2 h, y_i + c_2 k_2)$. This approximates the slope at the midpoint of the interval using the second stage's value.
+			\item Lastly, find the approximation of the solution at the next step, $y_{i+1}$, using the formula: $y_{i+1} = y_i + \frac{1}{3} (k_1 + k_2 + k_3)$.
+		\end{enumerate}
+
+		$f(t, y)$ is the function that describes the differential equation, $h$ is the size of the step, $(t_i, y_i)$ represent the current time and function value, respectively, and $c_2$ is a pre-specified constant.
 
 
 	}
@@ -48,8 +57,21 @@
 
 	\end{subquestion}
 	\answer{
+	\begin{equation}
+	y(t_{i+1}) = y(t_i) + h f(t_i, y_i) + \frac{h^2}{2} f'(t_i, y_i) + \frac{h^3}{6} f''(t_i, y_i) + O(h^4),
+	\end{equation}
+	The three-stage Runge-Kutta method, whose expansions are:
+	
+	\begin{align*}
+	k_1 &= h f(t_i, y_i), \\
+	k_2 &= h f(t_i + c_2 h, y_i + c_2 k_1) = h f(t_i, y_i) + c_2 h^2 f'(t_i, y_i) + O(h^3), \\
+	k_3 &= h f(t_i + 2 c_2 h, y_i + c_2 k_2) = h f(t_i, y_i) + 2 c_2 h^2 f'(t_i, y_i) + O(h^3), \\
+	y_{i+1} &= y_i + k_1 \cdot 0 + k_2 \cdot 0 + k_3 \cdot 1 = y_i + h f(t_i, y_i) + 2 c_2 h^2 f'(t_i, y_i) + O(h^3). \\
+	\end{align*}
+	
+	1- The initial term (up to $h$ order) in both series is identical for all $c_2$ values. Therefore, irrespective of the $c_2$ value, the method displays a first order ($p=1$) accuracy.
 
-
+	2- However, achieving second-order ($p=2$) accuracy requires the $h^2$ terms of the series to match. This occurs exclusively when $c_2$ equals $\frac{1}{4}$, as shown by the Runge-Kutta method expansion. Therefore, $c_2 = \frac{1}{4}$ is the unique condition under which the method reaches a second-order accuracy.
 	}
 
 	\begin{subquestion}{Determine the region of stability for the suggested Runge-Kutta method}
@@ -57,14 +79,69 @@
 	\end{subquestion}
 	\answer{
 
+	The region of stability (ROS) is a crucial concept in the context of numerical solutions for differential equations. It represents the set of complex numbers $\zeta = h \lambda$, where $h$ is the numerical method's step size and $\lambda$ is the eigenvalue of the system under consideration, which allows for a stable solution.
 
+	The notion of stability, in this context, relates to the behavior of solutions over time. For a stable method applied to the linear differential equation $y' = \lambda y$, the solutions do not increase in absolute value as time goes on.
+	
+	Given our particular Butcher tableau (with $c_2 = 1/4$), we can determine the stability function (or amplification factor) for this Runge-Kutta method as:
+	
+	\begin{equation}
+		R(\sigma ) = 1 + \sigma + \frac{\sigma^2}{2},
+		\end{equation}
+		
+	
+	with $\sigma = h \lambda$. The ROS is then characterized by the subset of the complex plane for which the absolute value of the stability function does not exceed 1. Formally, this can be written as:
+	
+	\begin{equation}
+		\{ \sigma \in {C} : |R(\sigma)| \leq 1 \}.
+		\end{equation}
+		
+	
+	This subset gives us all possible values of $\zeta=h\lambda$ that ensure the stability of our numerical method. By plotting this region, we can better understand the method's efficacy across different problems, which can be defined by diverse $\lambda$ values and various step sizes $h$.
+	
+	In the following figures, we show the boundary of the ROS, indicating the points for which the absolute value of the stability function equals 1. Also, we illustrate how the ROS changes with different step sizes.
+	\begin{center}
+		\includegraphics[width=0.7\columnwidth]{1.jpg} % Example image
+	\end{center}
+	\begin{center}
+		\includegraphics[width=0.7\columnwidth]{2.jpg} % Example image
+	\end{center}
+	
 	}
 
 	\begin{subquestion}{Analyze why the method becomes instable for h > 1.25 for the linear system}
 
 	\end{subquestion}
 	\answer{
+		In the case of the linear system $\dot{x} = -5x$, the system's eigenvalue is $\lambda = -5$. When this eigenvalue is introduced into the Runge-Kutta stability function, we find that the stability condition becomes:
 
+		\begin{equation}
+		|1 + h\lambda + \frac{(h\lambda)^2}{2}| \leq 1
+		\end{equation}
+		
+		For this system, this condition simplifies to:
+		
+		\begin{equation}
+		|1 - 5h + 12.5h^2| \leq 1
+		\end{equation}
+		
+		The method is stable when the absolute value of this expression is less than or equal to 1. If $h > 1.25$, the absolute value of the expression exceeds 1, and the method becomes unstable.
+		
+		The reason for this instability is that the step size $h$ becomes too large relative to the system's eigenvalue $\lambda$. The quantity $h\lambda = -5h$ is a measure of the total change in $x$ over a single step. If this quantity is too large (in absolute value), then the method's estimate of $x$ at the next step will overshoot the true value, leading to instability.
+		
+		To determine for which values of $h$ the resulting $\sigma = h\lambda$ lies in the ROS, we can substitute $\sigma = h\lambda$ into the stability condition and solve for $h$:
+		
+		\begin{equation}
+		|1 + \sigma + \frac{\sigma^2}{2}| \leq 1
+		\end{equation}
+		
+		This yields:
+		
+		\begin{equation}
+		|1 - 5h + 12.5h^2| \leq 1
+		\end{equation}
+		
+		Solving this inequality for $h$, we find that the method is stable for $-1.25 \leq h \leq 1.25$. These are the values of $h$ for which $\sigma = h\lambda$ lies in the ROS. If $h > 1.25$, the method becomes unstable because $\sigma$ falls outside the ROS.
 
 	}
 
